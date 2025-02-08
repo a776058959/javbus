@@ -1,0 +1,33 @@
+name: Repository Keep-Alive
+
+on:
+  schedule:
+    # 保活触发周期（建议50天一次）
+    - cron: '0 0 */50 * *'
+  workflow_dispatch:  # 保留手动触发
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # 重要：必须获取完整历史记录
+          fetch-depth: 0
+          # 显式声明写权限
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make keep-alive commit
+        run: |
+          # 配置Git身份
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions-bot@users.noreply.github.com"
+
+          # 创建空提交（关键参数说明）
+          git commit --allow-empty \
+            -m "🔄 Automated keep-alive commit [skip ci]" \
+            --author="GitHub Actions <actions@github.com>"
+
+          # 推送到仓库（注意分支名称）
+          git push origin main
